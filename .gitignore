@@ -1,0 +1,57 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Java / Maven / Backend
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE & Editor
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Secrets & Environment Variables (Never commit real .env files)
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Media, Large Assets & Screen Recordings
+*.mov
+*.mp4
+*.avi
+*.wmv
+IMG20260829220211.jpg
+prototype/
+AAYUSH-HEALTHCARE-BACKEND-master/
+*.xlsx
+*.pptx
+images/
+test_suite.py
+
+# Exclude any external documentation and files containing SIH
+*SIH*
+*sih*
+AAYUSH_SETU*
+
