@@ -42,16 +42,29 @@ target/
 *.mp4
 *.avi
 *.wmv
-IMG20260829220211.jpg
+*.jpg
+*.jpeg
+*.png.bak
+IMG*
 prototype/
 AAYUSH-HEALTHCARE-BACKEND-master/
 *.xlsx
+*.xls
+*.csv
 *.pptx
+*.ppt
+*.pdf
+*.docx
 images/
 test_suite.py
+uploads/
+**/uploads/
 
-# Exclude any external documentation and files containing SIH
-*SIH*
-*sih*
+# Presentations, Planning & Legacy Docs
+*REVIEW*
+*_All_Teams*
+*MASTER_PLAN*
+*Presentation*
 AAYUSH_SETU*
+
 
