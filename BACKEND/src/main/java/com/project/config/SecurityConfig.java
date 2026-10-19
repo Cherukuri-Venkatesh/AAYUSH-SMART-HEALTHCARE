@@ -26,6 +26,8 @@ public class SecurityConfig {
         configuration.addAllowedOriginPattern("https://aayush-healthcare-frontend.vercel.app");
         configuration.addAllowedOriginPattern("https://*.vercel.app");
         configuration.addAllowedOriginPattern("https://aayush-healthcare-frontend.onrender.com");
+        configuration.addAllowedOriginPattern("https://*.onrender.com");
+        configuration.addAllowedOriginPattern("https://*.netlify.app");
         configuration.addAllowedOriginPattern("http://localhost:5173");
         configuration.addAllowedOriginPattern("http://localhost:5174");
         configuration.addAllowedOriginPattern("http://localhost:5175");
