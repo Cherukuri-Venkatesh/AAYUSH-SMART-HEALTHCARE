@@ -22,24 +22,28 @@ public class LoginUserCleanupTriggerInitializer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void ensureDeleteTriggers() {
-        int removedDoctorOrphans = jdbcTemplate.update(
-            "DELETE lu FROM login_users lu " +
-                "LEFT JOIN doctors d ON LOWER(lu.email) = LOWER(d.email) " +
-                "WHERE lu.role = 'DOCTOR' AND d.id IS NULL"
-        );
-
-        int removedPatientOrphans = jdbcTemplate.update(
-            "DELETE lu FROM login_users lu " +
-                "LEFT JOIN patients p ON LOWER(lu.email) = LOWER(p.email) " +
-                "WHERE lu.role = 'PATIENT' AND p.id IS NULL"
-        );
-
-        if (removedDoctorOrphans > 0 || removedPatientOrphans > 0) {
-            logger.info(
-                "Removed orphan login_users rows on startup: doctors={}, patients={}",
-                removedDoctorOrphans,
-                removedPatientOrphans
+        try {
+            int removedDoctorOrphans = jdbcTemplate.update(
+                "DELETE lu FROM login_users lu " +
+                    "LEFT JOIN doctors d ON LOWER(lu.email) = LOWER(d.email) " +
+                    "WHERE lu.role = 'DOCTOR' AND d.id IS NULL"
             );
+
+            int removedPatientOrphans = jdbcTemplate.update(
+                "DELETE lu FROM login_users lu " +
+                    "LEFT JOIN patients p ON LOWER(lu.email) = LOWER(p.email) " +
+                    "WHERE lu.role = 'PATIENT' AND p.id IS NULL"
+            );
+
+            if (removedDoctorOrphans > 0 || removedPatientOrphans > 0) {
+                logger.info(
+                    "Removed orphan login_users rows on startup: doctors={}, patients={}",
+                    removedDoctorOrphans,
+                    removedPatientOrphans
+                );
+            }
+        } catch (Exception ex) {
+            logger.warn("Startup orphan login_users cleanup skipped: {}", ex.getMessage());
         }
 
         createTriggerIfMissing(
@@ -60,36 +64,34 @@ public class LoginUserCleanupTriggerInitializer {
             return;
         }
 
-        Integer triggerCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM information_schema.TRIGGERS " +
-                        "WHERE TRIGGER_SCHEMA = DATABASE() AND TRIGGER_NAME = ?",
-                Integer.class,
-                triggerName
-        );
-
-        if (triggerCount != null && triggerCount > 0) {
-            return;
-        }
-
-        String createTriggerSql = "CREATE TRIGGER " + triggerName +
-                " AFTER DELETE ON " + tableName +
-                " FOR EACH ROW DELETE FROM login_users " +
-                "WHERE LOWER(email) = LOWER(OLD.email) AND role = '" + role + "'";
-
         try {
-            jdbcTemplate.execute(createTriggerSql);
-            logger.info("Created DB trigger {} for {} delete cleanup", triggerName, tableName);
-        } catch (DataAccessException ex) {
-            if (isTriggerPrivilegeError(ex)) {
-                triggerCreationSkipped = true;
-                logger.warn(
-                    "Skipping DB trigger creation due to insufficient DB privileges. " +
-                        "Startup cleanup still runs, but deletes in {} will not auto-clean login_users.",
-                    tableName
-                );
+            Integer triggerCount = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.TRIGGERS " +
+                            "WHERE TRIGGER_SCHEMA = DATABASE() AND TRIGGER_NAME = ?",
+                    Integer.class,
+                    triggerName
+            );
+
+            if (triggerCount != null && triggerCount > 0) {
                 return;
             }
-            throw ex;
+
+            String createTriggerSql = "CREATE TRIGGER " + triggerName +
+                    " AFTER DELETE ON " + tableName +
+                    " FOR EACH ROW DELETE FROM login_users " +
+                    "WHERE LOWER(email) = LOWER(OLD.email) AND role = '" + role + "'";
+
+            jdbcTemplate.execute(createTriggerSql);
+            logger.info("Created DB trigger {} for {} delete cleanup", triggerName, tableName);
+        } catch (Exception ex) {
+            triggerCreationSkipped = true;
+            logger.warn(
+                "Skipping DB trigger creation for table '{}' ({}). " +
+                    "Database may be a cloud/distributed engine (like TiDB) that manages constraints without triggers. " +
+                    "Startup cleanup and application services will handle login_users cleanup automatically.",
+                tableName,
+                ex.getMessage()
+            );
         }
     }
 
