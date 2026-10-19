@@ -381,6 +381,11 @@ export function setupAutoObserver(langCode) {
     observer = null;
   }
 
+  // If default English, all JSX is native English - skip heavy DOM mutation watching
+  if (!langCode || langCode === 'en') {
+    return;
+  }
+
   let debounceTimer = null;
 
   observer = new MutationObserver((mutations) => {

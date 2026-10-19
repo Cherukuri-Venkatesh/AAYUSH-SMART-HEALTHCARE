@@ -1,43 +1,51 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AdminLayout from './admin/App.jsx';
-import Dashboard from './admin/pages/Admin/Dashboard.jsx';
-import AllAppointments from './admin/pages/Admin/AllAppointments.jsx';
-import AddDoctor from './admin/pages/Admin/AddDoctor.jsx';
-import AddHospital from './admin/pages/Admin/AddHospital.jsx';
-import DeleteDoctor from './admin/pages/Admin/DeleteDoctor.jsx';
-import DoctorsList from './admin/pages/Admin/DoctorsList.jsx';
-import AddPhcCenter from './admin/pages/Admin/AddPhcCenter.jsx';
-import PhcCentersList from './admin/pages/Admin/PhcCentersList.jsx';
-import AdminCommunityHealth from './admin/pages/Admin/AdminCommunityHealth.jsx';
 
-import DoctorAppointments from './admin/pages/Doctor/DoctorAppointments.jsx';
-import DoctorDashboard from './admin/pages/Doctor/DoctorDashboard.jsx';
-import DoctorProfile from './admin/pages/Doctor/DoctorProfile.jsx';
-import DoctorPatients from './admin/pages/Doctor/DoctorPatients.jsx';
-import DoctorPatientProfile from './admin/pages/Doctor/DoctorPatientProfile.jsx';
-import DoctorSchedule from './admin/pages/Doctor/DoctorSchedule.jsx';
-import DoctorAnalytics from './admin/pages/Doctor/DoctorAnalytics.jsx';
-import DoctorMyArea from './admin/pages/Doctor/DoctorMyArea.jsx';
-import DoctorForgotPassword from './admin/pages/Doctor/ForgotPassword.jsx';
-
-import PhcCentersDashboard from './admin/pages/PhcCenters/PhcCentersDashboard.jsx';
-
+// Core layout & critical landing components
 import PatientLayout from './patient/App.jsx';
-import About from './patient/pages/About.jsx';
-import AllHospitals from './patient/pages/AllHospitals.jsx';
-import Appointment from './patient/pages/Appointment.jsx';
-import Contact from './patient/pages/Contact.jsx';
-import Doctors from './patient/pages/Doctors.jsx';
+import AdminLayout from './admin/App.jsx';
 import Home from './patient/pages/Home.jsx';
-import Login from './patient/pages/Login.jsx';
-import ForgotPassword from './patient/pages/ForgotPassword.jsx';
-import MyAppointments from './patient/pages/MyAppointments.jsx';
-import MyLabReports from './patient/pages/MyLabReports.jsx';
-import MyPrescriptions from './patient/pages/MyPrescriptions.jsx';
-import MyProfile from './patient/pages/MyProfile.jsx';
-import Verify from './patient/pages/Verify.jsx';
-import OnlineConsultationRoom from './patient/pages/OnlineConsultationRoom.jsx';
+
+// Lazy-loaded routes for lag-free performance and lightweight bundles
+const Doctors = lazy(() => import('./patient/pages/Doctors.jsx'));
+const AllHospitals = lazy(() => import('./patient/pages/AllHospitals.jsx'));
+const Appointment = lazy(() => import('./patient/pages/Appointment.jsx'));
+const Contact = lazy(() => import('./patient/pages/Contact.jsx'));
+const About = lazy(() => import('./patient/pages/About.jsx'));
+const Login = lazy(() => import('./patient/pages/Login.jsx'));
+const ForgotPassword = lazy(() => import('./patient/pages/ForgotPassword.jsx'));
+const MyAppointments = lazy(() => import('./patient/pages/MyAppointments.jsx'));
+const MyLabReports = lazy(() => import('./patient/pages/MyLabReports.jsx'));
+const MyPrescriptions = lazy(() => import('./patient/pages/MyPrescriptions.jsx'));
+const MyProfile = lazy(() => import('./patient/pages/MyProfile.jsx'));
+const Verify = lazy(() => import('./patient/pages/Verify.jsx'));
+const OnlineConsultationRoom = lazy(() => import('./patient/pages/OnlineConsultationRoom.jsx'));
+
+// Lazy-loaded Admin pages
+const Dashboard = lazy(() => import('./admin/pages/Admin/Dashboard.jsx'));
+const AllAppointments = lazy(() => import('./admin/pages/Admin/AllAppointments.jsx'));
+const AddDoctor = lazy(() => import('./admin/pages/Admin/AddDoctor.jsx'));
+const AddHospital = lazy(() => import('./admin/pages/Admin/AddHospital.jsx'));
+const DeleteDoctor = lazy(() => import('./admin/pages/Admin/DeleteDoctor.jsx'));
+const DoctorsList = lazy(() => import('./admin/pages/Admin/DoctorsList.jsx'));
+const AddPhcCenter = lazy(() => import('./admin/pages/Admin/AddPhcCenter.jsx'));
+const PhcCentersList = lazy(() => import('./admin/pages/Admin/PhcCentersList.jsx'));
+const AdminCommunityHealth = lazy(() => import('./admin/pages/Admin/AdminCommunityHealth.jsx'));
+
+// Lazy-loaded Doctor pages
+const DoctorAppointments = lazy(() => import('./admin/pages/Doctor/DoctorAppointments.jsx'));
+const DoctorDashboard = lazy(() => import('./admin/pages/Doctor/DoctorDashboard.jsx'));
+const DoctorProfile = lazy(() => import('./admin/pages/Doctor/DoctorProfile.jsx'));
+const DoctorPatients = lazy(() => import('./admin/pages/Doctor/DoctorPatients.jsx'));
+const DoctorPatientProfile = lazy(() => import('./admin/pages/Doctor/DoctorPatientProfile.jsx'));
+const DoctorSchedule = lazy(() => import('./admin/pages/Doctor/DoctorSchedule.jsx'));
+const DoctorAnalytics = lazy(() => import('./admin/pages/Doctor/DoctorAnalytics.jsx'));
+const DoctorMyArea = lazy(() => import('./admin/pages/Doctor/DoctorMyArea.jsx'));
+const DoctorForgotPassword = lazy(() => import('./admin/pages/Doctor/ForgotPassword.jsx'));
+
+// Lazy-loaded PHC Center pages
+const PhcCentersDashboard = lazy(() => import('./admin/pages/PhcCenters/PhcCentersDashboard.jsx'));
+
 import AdminProviders from './providers/AdminProviders.jsx';
 import PatientProviders from './providers/PatientProviders.jsx';
 import { ProtectedRoute, GuestOnlyRoute } from './components/ProtectedRoute.jsx';
@@ -47,6 +55,12 @@ import LanguageSelectorWidget from './components/LanguageSelectorWidget.jsx';
 import CookieConsentBanner from './components/CookieConsentBanner.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
 
+const RouteLoader = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+    <div style={{ width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+  </div>
+);
+
 const App = () => {
   return (
     <LanguageProvider>
@@ -54,7 +68,8 @@ const App = () => {
       <LanguageSelectorWidget />
       <AiChatWidget />
       <CookieConsentBanner />
-      <Routes>
+      <Suspense fallback={<RouteLoader />}>
+        <Routes>
         {/* 1. PATIENT DASHBOARD & PORTAL */}
         <Route
           element={(
@@ -119,6 +134,7 @@ const App = () => {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </LanguageProvider>
   );
 };
