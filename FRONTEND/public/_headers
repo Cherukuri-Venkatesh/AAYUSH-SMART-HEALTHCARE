@@ -1,0 +1,17 @@
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-XSS-Protection: 1; mode=block
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Cache immutable bundled JS and CSS files for 1 year
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache SVGs and Icons
+/*.svg
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Cache Images
+/*.png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

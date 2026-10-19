@@ -35,37 +35,63 @@ const normalizeDoctor = (doctor) => {
   };
 };
 
+let memoryDoctorsCache = null;
+let lastDoctorsFetchTime = 0;
+const CACHE_TTL_MS = 180000; // 3 minutes
+
 export async function fetchDoctorsForPatient() {
+  const now = Date.now();
+  if (memoryDoctorsCache && (now - lastDoctorsFetchTime < CACHE_TTL_MS)) {
+    return memoryDoctorsCache;
+  }
+
+  // Check sessionStorage for fast render across page navigations
+  try {
+    const rawSession = sessionStorage.getItem('aayush_doctors_cache');
+    if (rawSession && !memoryDoctorsCache) {
+      const parsed = JSON.parse(rawSession);
+      if (parsed.data && (now - parsed.timestamp < CACHE_TTL_MS)) {
+        memoryDoctorsCache = parsed.data;
+        lastDoctorsFetchTime = parsed.timestamp;
+        return parsed.data;
+      }
+    }
+  } catch (e) {
+    // ignore sessionStorage errors
+  }
+
   const result = await patientApiGet('patient/doctors', { useAuth: false });
 
   if (!result.success) {
+    if (memoryDoctorsCache) return memoryDoctorsCache;
     throw new Error(result.error || 'Failed to fetch doctors');
   }
 
   const payload = result.data;
 
   if (!Array.isArray(payload)) {
+    if (memoryDoctorsCache) return memoryDoctorsCache;
     throw new Error('Invalid doctors response');
   }
 
-  return payload.map(normalizeDoctor);
+  const normalized = payload.map(normalizeDoctor);
+  memoryDoctorsCache = normalized;
+  lastDoctorsFetchTime = now;
+
+  try {
+    sessionStorage.setItem('aayush_doctors_cache', JSON.stringify({
+      data: normalized,
+      timestamp: now
+    }));
+  } catch (e) {
+    // ignore storage quota errors
+  }
+
+  return normalized;
 }
 
 export async function fetchTopDoctorsForPatient(limit = 6) {
-  const result = await patientApiGet('patient/doctors/top', { useAuth: false });
-
-  if (!result.success) {
-    // Fallback to regular doctors list if sorting fails
-    const fallbackDoctors = await fetchDoctorsForPatient();
-    return fallbackDoctors.slice(0, limit);
-  }
-
-  const payload = result.data;
-
-  if (!Array.isArray(payload)) {
-    throw new Error('Invalid top doctors response');
-  }
-
-  const sortedDoctors = payload.map(normalizeDoctor);
-  return sortedDoctors.slice(-limit).reverse();
+  const allDoctors = await fetchDoctorsForPatient();
+  return allDoctors.slice(0, limit);
 }
+

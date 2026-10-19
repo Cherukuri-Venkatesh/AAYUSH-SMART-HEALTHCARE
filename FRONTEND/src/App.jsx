@@ -44,6 +44,7 @@ import { ProtectedRoute, GuestOnlyRoute } from './components/ProtectedRoute.jsx'
 import InactivityLogout from './components/InactivityLogout.jsx';
 import AiChatWidget from './components/AiChatWidget.jsx';
 import LanguageSelectorWidget from './components/LanguageSelectorWidget.jsx';
+import CookieConsentBanner from './components/CookieConsentBanner.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
 
 const App = () => {
@@ -52,6 +53,7 @@ const App = () => {
       <InactivityLogout />
       <LanguageSelectorWidget />
       <AiChatWidget />
+      <CookieConsentBanner />
       <Routes>
         {/* 1. PATIENT DASHBOARD & PORTAL */}
         <Route
